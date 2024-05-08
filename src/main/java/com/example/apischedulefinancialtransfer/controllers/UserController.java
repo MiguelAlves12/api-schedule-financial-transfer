@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@RequestMapping("user")
 public class UserController {
 
     private final UserService userService;
@@ -18,27 +19,27 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/users")
-    public ResponseEntity<UserModel> saveUser(@RequestBody @Valid UserDTO userDTO){
+    @PostMapping("/save")
+    public ResponseEntity<Object> saveUser(@RequestBody @Valid UserDTO userDTO){
         return userService.saveUser(userDTO);
     }
 
-    @GetMapping("/users")
+    @GetMapping()
     public ResponseEntity<List<UserModel>> getAllUsers(){
         return userService.getAllUsers();
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Object> getOneUsers(@PathVariable(value="id") Integer id){
         return userService.getOneUser(id);
     }
 
-    @PutMapping("/users/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Object> updateUser(@PathVariable(value="id") Integer id, @RequestBody @Valid UserDTO userDTO){
         return userService.updateUser(id, userDTO);
     }
 
-    @DeleteMapping("users/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteUser(@PathVariable(value="id") Integer id){
         return userService.deleteUser(id);
     }

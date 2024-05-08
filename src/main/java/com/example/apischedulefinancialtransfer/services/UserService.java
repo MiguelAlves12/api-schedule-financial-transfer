@@ -7,6 +7,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +28,13 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll());
     }
 
-    public ResponseEntity<UserModel> saveUser(UserDTO userDTO) {
+    public ResponseEntity<Object> saveUser(UserDTO userDTO) {
+        Optional<UserDetails> user = Optional.ofNullable(userRepository.findByEmail(userDTO.getEmail()));
+        if(!user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("user already exist.");
+        }
+        String encryptedPassword = new BCryptPasswordEncoder().encode(userDTO.getPassword());
+        userDTO.setPassword(encryptedPassword);
         UserModel userModel = new UserModel();
         BeanUtils.copyProperties(userDTO, userModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(userModel));
