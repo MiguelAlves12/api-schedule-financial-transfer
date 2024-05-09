@@ -53,6 +53,8 @@ OBS.: CRUD é a sigla para CREATE, READ, UPDATE e DELETE, ou seja, foram criadas
   - enums: diretório com os enums que serão utilizados em outras classes do projeto.
 
 Além disso, foi utilizado o H2 para armazenar os dados no banco em memória que pode ser acessado na rota "/h2" utilizando os seguintes dados da imagem abaixo:
+
+
 ![img.png](img.png)
 
 ## Rodando o projeto Back-end localmente
