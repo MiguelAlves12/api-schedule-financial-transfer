@@ -17,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("bank-transfer")
+@CrossOrigin("*")
 public class BankTransferController {
     private final BankTransferService bankTransferService;
     @Autowired

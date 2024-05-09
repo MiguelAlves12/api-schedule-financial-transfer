@@ -1,6 +1,8 @@
 package com.example.apischedulefinancialtransfer.services;
 
 import com.example.apischedulefinancialtransfer.dtos.BankTransferDTO;
+import com.example.apischedulefinancialtransfer.dtos.ResponseErrorDTO;
+import com.example.apischedulefinancialtransfer.models.BankAccountModel;
 import com.example.apischedulefinancialtransfer.models.BankTransferModel;
 import com.example.apischedulefinancialtransfer.models.UserModel;
 import com.example.apischedulefinancialtransfer.repositories.BankTransferRepository;
@@ -17,6 +19,7 @@ import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,14 +34,20 @@ public class BankTransferService {
 
     public ResponseEntity<List<BankTransferModel>> getAllBankTransfers() {
         UserModel user = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.status(HttpStatus.OK).body(bankTransferRepository.findAllBySourceBankAccount(user.getBankAccount().getBankAccountDefault()));
+        BankAccountModel bankAccountDefault = user.getBankAccount();
+        List<BankTransferModel> bankTransferModelList = new ArrayList<>();
+        if(bankAccountDefault != null){
+            bankTransferModelList = bankTransferRepository.findAllBySourceBankAccount(bankAccountDefault.getBankAccountDefault());
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(bankTransferModelList);
     }
 
     public ResponseEntity<Object> saveBankTransfer(BankTransferDTO bankTransferDTO) {
         UserModel user = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String fee = calculateTransferFee(bankTransferDTO.getTransferValue(), bankTransferDTO.getTransferDate());
         if(fee == null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is not transfer fee for the chosen date.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseErrorDTO("não existe taxa correspondente a data escolhida."));
         }
         BankTransferModel bankTransferModel = new BankTransferModel();
         BeanUtils.copyProperties(bankTransferDTO, bankTransferModel);
@@ -81,18 +90,20 @@ public class BankTransferService {
         DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
         decimalFormatSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(decimalFormatSymbols);
-        if(intervalDays == 0){
-            return df.format((value * 0.025) + 3);
-        } else if(intervalDays <= 10){
-            return "12.00";
-        }else if(intervalDays <= 20){
-            return df.format((value * 0.082));
-        }else if(intervalDays <= 30){
-            return df.format((value * 0.069));
-        }else if(intervalDays <= 40){
-            return df.format((value * 0.047));
-        }else if(intervalDays <= 50){
-            return df.format((value * 0.017));
+        if(intervalDays >= 0){
+            if(intervalDays == 0){
+                return df.format((value * 0.025) + 3);
+            } else if(intervalDays <= 10){
+                return "12.00";
+            }else if(intervalDays <= 20){
+                return df.format((value * 0.082));
+            }else if(intervalDays <= 30){
+                return df.format((value * 0.069));
+            }else if(intervalDays <= 40){
+                return df.format((value * 0.047));
+            }else if(intervalDays <= 50){
+                return df.format((value * 0.017));
+            }
         }
         return null;
     }

@@ -9,10 +9,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BankAccountService {
@@ -26,7 +28,12 @@ public class BankAccountService {
     }
 
     public ResponseEntity<List<BankAccountModel>> getAllBankAccounts() {
-        return ResponseEntity.status(HttpStatus.OK).body(bankAccountRepository.findAll());
+        UserModel user = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        List<BankAccountModel> bankAccountModels = (bankAccountRepository.findAll()).stream()
+                .filter(bankAccount -> !user.getBankAccount().getBankAccountDefault().equals(bankAccount.getBankAccountDefault()))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(bankAccountModels);
     }
 
     public ResponseEntity<Object> saveBankAccount(BankAccountDTO bankAccountDTO) {
